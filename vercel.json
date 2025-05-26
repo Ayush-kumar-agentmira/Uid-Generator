@@ -1,8 +1,15 @@
 {
   "version": 2,
-  "functions": {
-    "api/next-uid.js": {
-      "runtime": "nodejs18.x"
+  "builds": [
+    {
+      "src": "api/next-uid.js",
+      "use": "@vercel/node"
     }
-  }
+  ],
+  "routes": [
+    {
+      "src": "/api/next-uid",
+      "dest": "api/next-uid.js"
+    }
+  ]
 }
