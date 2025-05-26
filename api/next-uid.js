@@ -8,16 +8,16 @@ export default async function handler(req, res) {
   const uidKey = 'latest_uid';
 
   try {
-    // Atomically increment UID
     const response = await fetch(`${url}/incr/${uidKey}`, {
       headers: {
         Authorization: `Bearer ${token}`
       }
     });
 
-    const uid = await response.text();
+    const result = await response.json();
+    const uid = parseInt(result.result, 10);
 
-    res.status(200).json({ uid: parseInt(uid, 10) });
+    res.status(200).json({ uid });
   } catch (err) {
     res.status(500).json({ error: 'Failed to increment UID', details: err.message });
   }
