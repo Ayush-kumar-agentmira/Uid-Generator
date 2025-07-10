@@ -1,23 +1,30 @@
+// api/next-uid.js
 export default async function handler(req, res) {
   if (req.method !== 'GET') {
     return res.status(405).json({ error: 'Only GET allowed' });
   }
 
-  const url = process.env.UPSTASH_REDIS_REST_URL;
-  const token = process.env.UPSTASH_REDIS_REST_TOKEN;
-  const uidKey = 'latest_uid';
+  const supabaseUrl = process.env.SUPABASE_URL;
+  const supabaseKey = process.env.SUPABASE_SERVICE_ROLE_KEY; // Use service role key for server-side
 
   try {
-    const response = await fetch(`${url}/incr/${uidKey}`, {
+    const response = await fetch(`${supabaseUrl}/rest/v1/rpc/nextval`, {
+      method: 'POST',
       headers: {
-        Authorization: `Bearer ${token}`
-      }
+        'apikey': supabaseKey,
+        'Authorization': `Bearer ${supabaseKey}`,
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({ sequence_name: 'uid_seq' })
     });
 
-    const result = await response.json();
-    const uid = parseInt(result.result, 10);
+    if (!response.ok) {
+      const error = await response.json();
+      throw new Error(error.message || 'Failed to get next UID');
+    }
 
-    res.status(200).json({ uid });
+    const uid = await response.json();
+    res.status(200).json({ uid: uid[0] }); // uid[0] is the next value
   } catch (err) {
     res.status(500).json({ error: 'Failed to increment UID', details: err.message });
   }
